@@ -166,15 +166,15 @@ class Session(object):
         """ 解析商品信息
         :param skuId
         """
-        resp = self.getItemDetail(skuId).json()
-        shopId = resp['shopInfo']['shop']['shopId']
-        detail = dict(venderId=shopId)
-        if 'YuShouInfo' in resp:
-            detail['yushouUrl'] = resp['YuShouInfo']['url']
-        if 'miaoshaInfo' in resp:
-            detail['startTime'] = resp['miaoshaInfo']['startTime']
-            detail['endTime'] = resp['miaoshaInfo']['endTime']
-        self.itemDetails[skuId] = detail
+#         resp = self.getItemDetail(skuId).json()
+#         shopId = resp['shopInfo']['shop']['shopId']
+#         detail = dict(venderId=shopId)
+#         if 'YuShouInfo' in resp:
+#             detail['yushouUrl'] = resp['YuShouInfo']['url']
+#         if 'miaoshaInfo' in resp:
+#             detail['startTime'] = resp['miaoshaInfo']['startTime']
+#             detail['endTime'] = resp['miaoshaInfo']['endTime']
+        self.itemDetails[skuId] = dict()
 
     ############## 库存方法 #############
     def getItemStock(self, skuId, skuNum, areaId):
@@ -184,8 +184,16 @@ class Session(object):
         :param areadId: 地区id
         :return: 商品是否有货 True/False
         """
-        resp = self.getItemDetail(skuId, skuNum, areaId).json()
-        return 'stockInfo' in resp and resp['stockInfo']['isStock']
+        url = 'https://cd.jd.com/stocks'
+        payload = {
+            'type': 'getstocks',
+            'area': areaId,
+            'skuIds': skuId
+        }
+        resp = requests.get(url=url, params=payload, headers=self.headers).json()
+        stock_name = resp[skuId]['StockStateName']
+        print("stock_name: ", stock_name)
+        return stock_name in ['现货', '可配货', '有货']
 
     ############## 购物车相关 #############
 
